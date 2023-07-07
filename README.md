@@ -1,1 +1,1 @@
-# samplify_discord_bot
+# samplify_x_discord_bot
