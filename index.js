@@ -46,7 +46,7 @@ client.on("messageCreate", async (message) => {
 
 async function getSamples(id) {
   const res = await axios.get(
-    `https://samplify.vercel.app/api/samples?id=${id}`
+    `https://rangi.beatbotanica.com/api/samples?id=${id}`
   );
   return JSON.stringify(res.data);
 }
