@@ -27,14 +27,22 @@ client.on("messageCreate", async (message) => {
   const command = args.shift().toLowerCase();
 
   switch (command) {
-    case "samples":
+    case "samplify":
       try {
-        let [id] = args;
-        const samples = await getSamples(id);
-        message.reply(samples);
+        let query = args.join(" ");
+        const results = await getSearchResults(query);
+        // for each result, send its title and artist
+
+        let text = "Showing results for " + query + "\n";
+
+        results.forEach((result, index) => {
+          text += index+1 + ": " + result.title + " by " + result.artist + "\n";
+        });
+
+        message.reply(text);
       } catch (err) {
         message.reply(
-          "Invalid syntax. Please use the following format: !samples <song id>" +
+          "Something went wrong. Please make sure to use the following format if you haven't: !samplify <search query> \n" +
             err.toString()
         );
       }
@@ -46,9 +54,16 @@ client.on("messageCreate", async (message) => {
 
 async function getSamples(id) {
   const res = await axios.get(
-    `https://samplify.vercel.app/api/samples?id=${id}`
+    `https://rangi.beatbotanica.com/api/samples?id=${id}`
   );
   return JSON.stringify(res.data);
+}
+
+async function getSearchResults(query) {
+  const res = await axios.get(
+    `https://rangi.beatbotanica.com/api/search?q=${query}&num=4`
+  );
+  return res.data;
 }
 
 //make sure this line is the last line
