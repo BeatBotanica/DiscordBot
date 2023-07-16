@@ -52,6 +52,25 @@ client.on("messageCreate", async (message) => {
   }
 });
 
+client.on("messageReactionAdd", async (reaction, user) => {
+  if (user.bot) return;
+
+  if (reaction.emoji.name === "1️⃣") {
+    const message = reaction.message;
+    message.reply("You reacted with a 1");
+
+  } else if(reaction.emoji.name === "2️⃣") {
+
+
+  } else if(reaction.emoji.name === "3️⃣") {
+
+
+  } else if(reaction.emoji.name === "4️⃣") {
+
+
+  }
+});
+
 async function getSamples(id) {
   const res = await axios.get(
     `https://rangi.beatbotanica.com/api/samples?id=${id}`
