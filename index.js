@@ -79,7 +79,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
 
     const result = results[reactionIndex];
     const samples = await getSamples(result.id);
-    const reply = await reaction.message.reply("Loading samples...");
+    const reply = await reaction.message.reply(`Loading samples for ${result.title}...`);
 
     // Prepare the formatted message content and embeds
     const formattedSamples = JSON.parse(samples);
@@ -107,16 +107,11 @@ client.on("messageReactionAdd", async (reaction, user) => {
 
     // Edit the loading message with the formatted samples content and images
     embeds.forEach((embed, index) => {
-      if (index === 0) {
-        reply.edit({
-          embeds: [embed],
-        });
-      } else {
         reply.channel.send({
           embeds: [embed],
         });
       }
-    });
+    );
   }
 });
 
