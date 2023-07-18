@@ -19,8 +19,8 @@ const config = {
   prefix: "/",
 };
 
+const BOT_ID = "1129971995799465995";
 let results;
-
 let botMsgIds = [];
 let latestFindReplyId = "";
 
@@ -84,7 +84,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
     reaction.message.channel.messages.fetch({ limit: 100 }).then((messages) => {
      const botMessages = messages.filter(
       (msg) =>
-        msg.author.id === "1129971995799465995" && 
+        msg.author.id === BOT_ID && 
         !msg.deleted && 
         botMsgIds.includes(msg.id) &&
         !msg.content.startsWith("Showing results for")
