@@ -16,12 +16,13 @@ client.on("ready", () => {
 });
 
 const config = {
-  prefix: ".",
+  prefix: "/",
 };
 
 let results;
 
 let botMsgIds = [];
+let latestFindReplyId = "";
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
@@ -45,8 +46,8 @@ client.on("messageCreate", async (message) => {
           text += index + 1 + ": " + result.title + " by " + result.artist + "\n";
         });
 
-        const reply = message.reply(text);
-        reply.then((msg) => {
+        message.reply(text).then((msg) => {
+          latestFindReplyId = msg.id;
           msg.react("1️⃣");
           msg.react("2️⃣");
           msg.react("3️⃣");
@@ -68,7 +69,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
   if (user.bot) return;
   let reactionIndex = 0;
 
-  if (reaction.message.content.startsWith("Showing results for ")) {
+  if (reaction.message.content.startsWith("Showing results for ") && reaction.message.id === latestFindReplyId) {
     if (reaction.emoji.name === "1️⃣") {
       reactionIndex = 0;
     } else if (reaction.emoji.name === "2️⃣") {
