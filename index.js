@@ -21,6 +21,8 @@ const config = {
 
 let results;
 
+let botMsgIds = [];
+
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -31,6 +33,7 @@ client.on("messageCreate", async (message) => {
 
   switch (command) {
     case "find":
+      botMsgIds = [];
       try {
         let query = args.join(" ");
         results = await getSearchResults(query);
@@ -63,7 +66,6 @@ client.on("messageCreate", async (message) => {
 
 client.on("messageReactionAdd", async (reaction, user) => {
   if (user.bot) return;
-
   let reactionIndex = 0;
 
   if (reaction.message.content.startsWith("Showing results for ")) {
@@ -77,51 +79,52 @@ client.on("messageReactionAdd", async (reaction, user) => {
       reactionIndex = 3;
     }
 
+    // Delete previous bot embeds
+    reaction.message.channel.messages.fetch({ limit: 100 }).then((messages) => {
+     const botMessages = messages.filter(
+      (msg) =>
+        msg.author.id === "1129971995799465995" && 
+        !msg.deleted && 
+        botMsgIds.includes(msg.id) &&
+        !msg.content.startsWith("Showing results for")
+    );
+
+      botMessages.forEach((msg) => {
+        msg.delete();
+        botMsgIds = botMsgIds.filter((id) => id !== msg.id);
+      });
+    });
+
     const result = results[reactionIndex];
     const samples = await getSamples(result.id);
     const reply = await reaction.message.reply(`Loading samples for ${result.title}...`);
+    botMsgIds.push(reply.id);
+    // Remove user's reaction
+    reaction.users.remove(user.id).catch(console.error);
 
-    // Delete previous bot embeds
-    const botMessages = reaction.message.channel.messages.cache.filter(
-      (msg) =>
-        msg.author.id === "1129971995799465995" &&
-        !msg.deleted &&
-        (msg.embeds.length > 0 ||
-          msg.content.startsWith("No samples found.") ||
-          msg.content.startsWith("Loading samples for"))
-    );
-
-    const deletionPromises = botMessages.map((msg) => msg.delete());
-    await Promise.all(deletionPromises);
-
-
-    if (deletionPromises.length > 0) {
-
-      // Remove user's reaction
-      reaction.users.remove(user.id).catch(console.error);
-
-      // Prepare the formatted message content and embeds
-      const formattedSamples = JSON.parse(samples);
-      if (formattedSamples.length === 0) {
-        reply.edit("No samples found.");
-        return;
-      }
-
-      const embeds = formattedSamples.map((sample) => ({
-        description:
-          `Title: ${sample.title}\n` +
-          `Artist: ${sample.artist}\n` +
-          `Year: ${sample.year}\n`,
-        image: {
-          url: sample.imgUrl,
-        },
-      }));
-
-      // Send the formatted samples content and images
-      embeds.forEach((embed) => {
-        reaction.message.channel.send({ embeds: [embed] });
-      });
+    // Prepare the formatted message content and embeds
+    const formattedSamples = JSON.parse(samples);
+    if (formattedSamples.length === 0) {
+      reply.edit("No samples found.");
+      return;
     }
+
+    const embeds = formattedSamples.map((sample) => ({
+      description:
+        `Title: ${sample.title}\n` +
+        `Artist: ${sample.artist}\n` +
+        `Year: ${sample.year}\n`,
+      image: {
+        url: sample.imgUrl,
+      },
+    }));
+
+    // Send the formatted samples content and images
+    embeds.forEach((embed) => {
+      reaction.message.channel.send({ embeds: [embed] }).then((msg) => {
+        botMsgIds.push(msg.id);
+      });
+    });
   }
 
 });
