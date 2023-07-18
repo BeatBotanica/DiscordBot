@@ -81,38 +81,49 @@ client.on("messageReactionAdd", async (reaction, user) => {
     const samples = await getSamples(result.id);
     const reply = await reaction.message.reply(`Loading samples for ${result.title}...`);
 
-    // Prepare the formatted message content and embeds
-    const formattedSamples = JSON.parse(samples);
-    if(formattedSamples.length === 0) {
-      reply.edit("No samples found.");
-      return;
-    }
-    const embeds = [];
+    // Delete previous bot embeds
+    const botMessages = reaction.message.channel.messages.cache.filter(
+      (msg) =>
+        msg.author.id === "1129971995799465995" &&
+        !msg.deleted &&
+        (msg.embeds.length > 0 ||
+          msg.content.startsWith("No samples found.") ||
+          msg.content.startsWith("Loading samples for"))
+    );
 
-    formattedSamples.forEach((sample, index) => {
-      const sampleContent =
-        `  Title: ${sample.title}\n` +
-        `  Artist: ${sample.artist}\n` +
-        `  Year: ${sample.year}\n`;
+    const deletionPromises = botMessages.map((msg) => msg.delete());
+    await Promise.all(deletionPromises);
 
-      const embed = {
-        description: sampleContent,
+
+    if (deletionPromises.length > 0) {
+
+      // Remove user's reaction
+      reaction.users.remove(user.id).catch(console.error);
+
+      // Prepare the formatted message content and embeds
+      const formattedSamples = JSON.parse(samples);
+      if (formattedSamples.length === 0) {
+        reply.edit("No samples found.");
+        return;
+      }
+
+      const embeds = formattedSamples.map((sample) => ({
+        description:
+          `Title: ${sample.title}\n` +
+          `Artist: ${sample.artist}\n` +
+          `Year: ${sample.year}\n`,
         image: {
           url: sample.imgUrl,
         },
-      };
+      }));
 
-      embeds.push(embed);
-    });
-
-    // Edit the loading message with the formatted samples content and images
-    embeds.forEach((embed, index) => {
-        reply.channel.send({
-          embeds: [embed],
-        });
-      }
-    );
+      // Send the formatted samples content and images
+      embeds.forEach((embed) => {
+        reaction.message.channel.send({ embeds: [embed] });
+      });
+    }
   }
+
 });
 
 async function getSamples(id) {
