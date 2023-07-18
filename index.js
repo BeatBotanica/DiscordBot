@@ -16,7 +16,7 @@ client.on("ready", () => {
 });
 
 const config = {
-  prefix: "!",
+  prefix: ".",
 };
 
 let results;
@@ -30,7 +30,7 @@ client.on("messageCreate", async (message) => {
   const command = args.shift().toLowerCase();
 
   switch (command) {
-    case "samplify":
+    case "find":
       try {
         let query = args.join(" ");
         results = await getSearchResults(query);
